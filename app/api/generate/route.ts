@@ -3,15 +3,17 @@ import Anthropic from "@anthropic-ai/sdk";
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: Request) {
-  const { subject, topic, marks } = await req.json();
+  const { subject, topic, marks, variant } = await req.json();
 
   const prompt = `You are an expert GCSE examiner writing a question for a student.
 
 Subject: ${subject}
 Topic: ${topic}
 Marks: ${marks}
+Variant seed: ${variant}
 
 Generate ONE exam-style question worth ${marks} marks on this topic.
+Every call has a unique variant seed — use it to produce a DIFFERENT question each time (different scenario, wording, data, or angle on the topic).
 
 Respond in this exact JSON format:
 {
