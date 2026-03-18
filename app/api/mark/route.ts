@@ -27,22 +27,26 @@ Mark this answer strictly against the mark scheme. Respond in this exact JSON fo
 
 Be fair but strict — only award marks for points clearly addressed. Do not add text outside the JSON.`;
 
-  const response = await client.messages.create({
-    model: "claude-opus-4-6",
-    max_tokens: 1024,
-    thinking: { type: "adaptive" },
-    messages: [{ role: "user", content: prompt }],
-  });
+  try {
+    const response = await client.messages.create({
+      model: "claude-opus-4-6",
+      max_tokens: 1024,
+      messages: [{ role: "user", content: prompt }],
+    });
 
-  const text = response.content
-    .filter((b) => b.type === "text")
-    .map((b) => (b as { type: "text"; text: string }).text)
-    .join("");
+    const text = response.content
+      .filter((b) => b.type === "text")
+      .map((b) => (b as { type: "text"; text: string }).text)
+      .join("");
 
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    return Response.json({ error: "Failed to parse marking response" }, { status: 500 });
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return Response.json({ error: "Failed to parse marking response" }, { status: 500 });
+    }
+
+    return Response.json(JSON.parse(jsonMatch[0]));
+  } catch (err) {
+    console.error("Marking error:", err);
+    return Response.json({ error: "Marking failed. Please try again." }, { status: 500 });
   }
-
-  return Response.json(JSON.parse(jsonMatch[0]));
 }

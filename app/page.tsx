@@ -27,6 +27,7 @@ export default function Home() {
   const [studentAnswer, setStudentAnswer] = useState("");
   const [marking, setMarking] = useState(false);
   const [result, setResult] = useState<MarkResult | null>(null);
+  const [markError, setMarkError] = useState<string | null>(null);
 
   const currentSubject = SUBJECTS.find((s) => s.name === subject)!;
 
@@ -63,6 +64,7 @@ export default function Home() {
     if (!generated || !studentAnswer.trim()) return;
     setMarking(true);
     setResult(null);
+    setMarkError(null);
     try {
       const res = await fetch("/api/mark", {
         method: "POST",
@@ -76,7 +78,13 @@ export default function Home() {
         }),
       });
       const data = await res.json();
-      setResult(data);
+      if (data.error) {
+        setMarkError(data.error);
+      } else {
+        setResult(data);
+      }
+    } catch {
+      setMarkError("Something went wrong. Please try again.");
     } finally {
       setMarking(false);
     }
@@ -234,6 +242,12 @@ export default function Home() {
                 >
                   {marking ? "Marking your answer…" : "Submit for Marking"}
                 </button>
+
+                {markError && (
+                  <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+                    {markError}
+                  </p>
+                )}
               </div>
             )}
 
